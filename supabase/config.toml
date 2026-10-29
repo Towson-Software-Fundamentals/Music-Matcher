@@ -1,0 +1,31 @@
+project_id = "party-music-matcher"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5180"
+additional_redirect_urls = ["http://127.0.0.1:5180/login", "http://127.0.0.1:5180/reset-password"]
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+
+[functions.catalog-search]
+verify_jwt = false

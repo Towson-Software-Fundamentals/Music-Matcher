@@ -1,0 +1,13 @@
+alter function private.ok(jsonb) set search_path='';
+alter function private.fail(text,text) set search_path='';
+alter function private.valid_keys(jsonb,text[]) set search_path='';
+alter function private.is_uuid(text) set search_path='';
+alter function private.normalize(text) set search_path='';
+alter function private.profile_json(public.music_profiles) set search_path='';
+alter function private.catalog_json(public.catalog_items) set search_path='';
+alter function private.preference_values(uuid) set search_path='';
+alter function private.preference_set(uuid) set search_path='';
+alter function private.calculate_overlap(jsonb,jsonb) set search_path='';
+create index preferences_catalog_item_idx on public.music_preferences(catalog_item_id);
+create index matches_participant_b_idx on public.matches(profile_b_id,created_at desc,id desc);
+create index matches_participant_a_idx on public.matches(profile_a_id,created_at desc,id desc);
