@@ -141,6 +141,8 @@ Sharing is off by default. Opting in discloses shared and unique preferences to 
 
 ## Public frontend release
 
-For a free static host such as Cloudflare Pages, use `npm run build`, output directory `dist`, and configure only the two public Vite variables at build time. The included `public/_redirects` supplies the SPA fallback for compatible hosts. Other hosts may require their own fallback setting.
+Cloudflare GitHub integration is the selected hosting route. The current dashboard deployment uses Workers Static Assets; the included `wrangler.jsonc` configures its native SPA fallback. Follow the [Cloudflare deployment checklist](./docs/CLOUDFLARE-DEPLOYMENT.md) for exact build settings, production environment variables, and Supabase follow-up configuration.
+
+Use `npm run build`, output directory `dist`, and configure only the two public Vite variables at build time. For Workers, deploy with `npx wrangler deploy`; its native `single-page-application` asset handling serves client-side routes without a catch-all redirect. Cloudflare Pages also supports SPA fallback automatically when no top-level `404.html` is present. Other hosts may require their own fallback setting.
 
 Set the production Auth URLs and Edge Function `APP_ORIGIN`, rebuild, and verify signup/confirmation/recovery, a real signed-in catalog search, save/reload, two-account comparison, and result deep-link reload. Do not call the release done until these live checks pass. No frontend hosting account was provisioned or changed.
