@@ -1,6 +1,36 @@
 # Cloudflare deployment
 
-Status: GitHub integration selected. The reported deployment log uses **Workers Static Assets**, not Pages. Configuration now supports that route; successful deployment is still pending. No Cloudflare resources have been created by the assistant.
+## Custom domain update — November 2, 2026
+
+The existing Worker was deployed through Wrangler with `matchmymusic.app` as a managed custom domain, while retaining the original `workers.dev` address. Version: `27545e2d-80dd-4449-a0e1-ed44fa3fa480`. The route is declared in `wrangler.jsonc`; keep this configuration in future GitHub builds so they do not remove the custom-domain attachment.
+
+Cloudflare accepted the attachment and manages DNS/certificate issuance. The first HTTPS probe encountered a TLS handshake failure during provisioning. Subsequent checks passed certificate verification and loaded the real homepage, login, and recovery screens with HTTP 200 in a clean Chromium browser.
+
+Supabase settings were applied through the authenticated CLI and verified:
+
+- Auth Site URL: `https://matchmymusic.app`
+- Auth redirect allowlist: `https://matchmymusic.app/login` and `https://matchmymusic.app/reset-password`
+- Edge Function secret `APP_ORIGIN`: `https://matchmymusic.app` (no trailing slash)
+
+The single-origin catalog policy will then serve the custom-domain frontend instead of the old Worker frontend. Existing Auth redirects can remain for previously issued links. Users need to sign in again on the new hostname because browser session storage is origin-specific.
+
+The production CORS preflight now returns `Access-Control-Allow-Origin: https://matchmymusic.app`. A post-update configuration diff reports zero pending updates to declared Auth properties; other hosted settings, including confirmations and MFA, were preserved.
+
+Reproducible CLI commands (requires Supabase login):
+
+```sh
+npx supabase config diff --remote=cilswqtuswmuktzhifsn --workdir supabase/production
+npx supabase config push --remote=cilswqtuswmuktzhifsn --workdir supabase/production --yes
+npx supabase secrets set APP_ORIGIN=https://matchmymusic.app --remote=cilswqtuswmuktzhifsn --workdir supabase/production --yes
+```
+
+The separate minimal production config deliberately declares only Auth URL settings; do not push the local-development config as a substitute. End-to-end email delivery and signed-in searches on the new hostname still require real-user verification.
+
+Test on university Wi-Fi independently: a valid public custom-domain certificate does not guarantee acceptance by university filtering.
+
+Status: deployed to **Workers Static Assets** at https://music-matcher.nerva-corporation.workers.dev. On October 28, 2026, an approved Wrangler deployment of the locally configured production build replaced the missing-configuration screen with the actual welcome page, verified in a browser. Version: `c16707c9-f443-4bed-a99d-851be49ba632`. The existing Worker was updated, not a new project created.
+
+The CLI deployment used `npm run build` followed by `wrangler deploy --keep-vars`, with the ignored local `.env` supplying the public Supabase build variables. **Future GitHub builds still require those variables in Cloudflare's build settings**, or they will overwrite this working deployment with an unconfigured build. Supabase production Auth URLs, SMTP, and catalog `APP_ORIGIN` remain separate setup steps and have not been verified by this deployment.
 
 ## Current Workers build settings
 
