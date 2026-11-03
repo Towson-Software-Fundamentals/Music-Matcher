@@ -64,3 +64,20 @@ Deployed: free project `cilswqtuswmuktzhifsn`, three migrations, catalog functio
 Blocked/unrun: real signup confirmation/recovery, signed-in deployed catalog search, live two-account browser journey, multi-connection races, full genre import, Docker/CLI clean setup, hosted frontend deep links, and public HTTPS release. User chose to defer Auth URL/SMTP and public hosting. Provider 503s occurred during metadata retrieval. No email-delivery or provider uptime claim is made.
 
 Next: follow [README setup](../../README.md), complete Auth/SMTP, exercise real accounts/search, configure a free static host and `APP_ORIGIN`, and repeat live acceptance. This is implemented code with a deployed backend, **not a completed release gate**.
+
+## Verification handoff — November 2, 2026 (Windows workspace)
+
+Environment: Windows, Node 24.18.1, npm 11.16.0, Supabase CLI 3.0.0. The workspace has a local Supabase stack available at the documented ports. The existing ignored `.env` targets the approved hosted project; Playwright's browser suite uses its own local mock endpoint and does not touch hosted data.
+
+Passed in this workspace:
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm test`: 15 tests across 2 files.
+- `npm run test:e2e`: 10 desktop/mobile tests (Chromium), all passed. These mock Supabase responses.
+- `npm run build`: production bundle generated; Vite reported advisory Zod annotation and 500 kB chunk-size warnings.
+- `npx supabase status`: local API is available. No database reset or hosted project mutation was performed.
+
+Still unverified: real signup confirmation and recovery, signed-in hosted catalog search, live two-account comparison/history, multi-connection race behavior, clean local-stack setup from reset, hosted deep-link reload, and public HTTPS deployment. These require live email/account access and a hosting target. The local Supabase CLI and stack availability does not close those gates.
+
+Next packet: complete F07A with two consenting real accounts after Auth redirects and email delivery are configured; verify catalog search, preference persistence, comparison consent, and history. Then complete F07B against a selected static host, including deep-link fallback and public HTTPS checks. Do not mark F07 release-complete until both packets have recorded evidence.
