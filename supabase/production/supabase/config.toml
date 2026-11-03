@@ -1,0 +1,12 @@
+project_id = "party-music-matcher-production"
+
+[auth]
+site_url = "https://matchmymusic.app"
+additional_redirect_urls = [
+  "https://matchmymusic.app/login",
+  "https://matchmymusic.app/reset-password",
+  "https://music-matcher.nerva-corporation.workers.dev/login",
+  "https://music-matcher.nerva-corporation.workers.dev/reset-password",
+  "http://127.0.0.1:5180/login",
+  "http://127.0.0.1:5180/reset-password"
+]
