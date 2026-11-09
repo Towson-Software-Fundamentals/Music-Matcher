@@ -29,10 +29,10 @@ Tests, clear interfaces, and persistent documentation carry context between sess
 | --- | --- | --- | --- |
 | F00 | [Foundation and shared contracts](./F00-foundation.md) | None | A: scaffold/tooling/transport types; B: theme, primitives, shell |
 | F01 | [Identity and recovery](./F01-identity.md) | F00 | A: Auth adapter/session state; B: forms, guards, recovery |
-| F02 | [Profile and comparison consent](./F02-profiles.md) | F01 | A: schema/RPC/access tests; B: settings and onboarding |
+| F02 | [Profile and comparison consent](./F02-profiles.md) | F01 | A: schema/RPC/access tests; B: settings and onboarding; C: all-user directory RPC/privacy/access tests (planned launch addition) |
 | F03 | [Preference editing](./F03-preferences.md) | F02 | A: normalization/transaction/access tests; B: custom-entry editor |
 | F04 | [Music catalog](./F04-catalog.md) | F03 | A: catalog/cache/gate/provider API; B: search and picker integration |
-| F05 | [Comparison creation](./F05-comparison.md) | F03 | A: eligibility/scoring/snapshot transaction; B: compare screen |
+| F05 | [Comparison creation](./F05-comparison.md) | F03; F02C and F06 for C | A: eligibility/scoring/snapshot transaction; B: compare screen; C: browse users and click-through comparison (planned launch addition) |
 | F06 | [Results and history](./F06-results.md) | F05 | A: authorized read APIs; B: results/history/dashboard |
 | F07 | [Release integration](./F07-release.md) | F04, F06, F01 | A: full-flow/accessibility acceptance; B: reproducible setup/deployment |
 
@@ -88,6 +88,6 @@ Keep the handoff under approximately 400 words; do not copy logs or source files
 
 `F00A -> F00B -> F01A -> F01B -> F02A -> F02B -> F03A -> F03B`
 
-Then `F05A -> F05B -> F06A -> F06B`, followed by `F04A -> F04B`, then `F07A -> F07B`. Catalog can be brought earlier after F03 if desired.
+Then `F05A -> F05B -> F06A -> F06B`, followed by `F04A -> F04B` and the required launch addition `F02C -> F05C`, then `F07A -> F07B`. Catalog can be brought earlier after F03 if desired.
 
 Each packet is intended to fit one focused model working context, not necessarily one prompt or an equal number of hours. The existing overall effort estimate remains a rough planning estimate; this decomposition does not make it more certain.

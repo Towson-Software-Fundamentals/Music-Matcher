@@ -86,6 +86,21 @@ test('a recovery callback can restore its intent after the auth session loads', 
   expect(await page.evaluate(() => localStorage.getItem('music-matcher-recovery-requested-at'))).toBeNull()
 })
 
+test('comparison sharing status is disclosed and can be turned off', async ({ page }) => {
+  await mockBackend(page)
+  await page.goto('/dashboard')
+  const notice = page.getByRole('status').filter({ hasText: 'Comparison sharing is on.' })
+  await expect(notice).toBeVisible()
+  await notice.getByRole('link', { name: 'Change sharing in Settings' }).click()
+  const sharing = page.getByRole('checkbox', { name: 'Allow comparisons with my profile' })
+  await expect(sharing).toBeChecked()
+  await sharing.uncheck()
+  await page.getByRole('button', { name: 'Save profile' }).click()
+  await expect(page.getByText('Your profile is saved.')).toBeVisible()
+  await page.getByRole('link', { name: 'Overview' }).click()
+  await expect(page.getByText('Comparison sharing is on.', { exact: false })).toHaveCount(0)
+})
+
 test('edits custom preferences, saves, cancels and reloads without losing stored values', async ({ page }) => {
   await mockBackend(page)
   await page.goto('/preferences')

@@ -24,6 +24,8 @@ RPC: `create_comparison`. Client never submits requester, score, normalized pref
 
 The compare screen consumes F02's exact-handle lookup, shows the selected target, then calls this API. A new deliberate comparison creates a new request ID; a retry of the same attempt reuses it. Clear stale selections if the handle changes. On success, the app navigates to `/comparisons/:id`.
 
+Initial-launch addition (planned, not implemented): the primary discovery flow will consume F02's paginated all-user directory and open this screen with the clicked target selected. Exact-handle lookup remains available as an alternate route; both entry points use the same creation API and saved-result view.
+
 ## Stored result contract for F06
 
 ```ts
@@ -76,6 +78,7 @@ Helper contract for database-local tests: `calculate_overlap(A: PreferenceValue[
 
 - **A:** Schema, eligibility, pure SQL scoring cases, atomic snapshot persistence, idempotency races, opt-out concurrency, immutable historical data, unauthorized/direct-insert rejection, and the 100-item timing test.
 - **B:** Exact-handle flow, selected-target confirmation, loading/disabled actions, visible eligibility/persistence errors, safe retry ID handling, and successful navigation.
+- **C (required for initial launch):** Browse all completed platform profiles with pagination, display name/handle and availability; label your own profile and prevent self-comparison. Clicking an available user opens selected-target confirmation, then a saved result with shared artists/genres/songs, unique preferences, and score. Cover loading, empty, error/retry, unavailable/removed targets, and consent changes after selection. Depend on F02C and reuse F06 results rather than calculating matches in the directory.
 
 Do not implement AI, history queries, or duplicate client-side authoritative scoring. Test shape and scoring using the same saved result contract consumed by F06.
 

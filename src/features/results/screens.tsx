@@ -42,6 +42,7 @@ export function Dashboard() {
     else { setHistory(old => ({ items: [...(old?.items ?? []), ...result.data.items], nextCursor: result.data.nextCursor })); setError('') }
   }
   return <><PageHeading eyebrow="YOUR MUSIC SPACE" title={`Hey, ${profile?.displayName}.`}>Good music is better when you find someone to share it with.</PageHeading>
+    {profile?.comparisonEnabled && <Feedback kind="info">Comparison sharing is on. Other signed-in users can compare with you and see shared and unique preferences in the result. <Link to="/settings">Change sharing in Settings</Link>.</Feedback>}
     <section className="dashboard-hero panel"><div><span className="eyebrow">TWO TASTES. ONE CONNECTION.</span><h2>Who’s on your wavelength?</h2><p>Pick a profile and discover what’s playing in both your worlds.</p><Link className="button primary" to="/compare">Compare with someone <ArrowRight size={18} /></Link></div><div className="wave-art" aria-hidden="true"><Users size={92} strokeWidth={1} /></div></section>
     <Feedback>{countError}</Feedback>
     <div className="stats">{[{ key: 'artist', label: 'Favorite artists', icon: Music2 }, { key: 'genre', label: 'Favorite genres', icon: Disc3 }, { key: 'song', label: 'Songs on repeat', icon: Music2 }].map(({ key, label, icon: Icon }) => <Link className="panel stat" to="/preferences" key={key}><Icon size={20} /><strong>{counts ? counts[key] : '—'}</strong><span>{label}</span><ArrowRight size={16} /></Link>)}</div>

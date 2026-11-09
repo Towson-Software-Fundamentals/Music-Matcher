@@ -22,7 +22,7 @@ export function Welcome() {
       <div className="floating-card card-right"><span className="mini-avatar violet">T</span><div>Their rotation<strong>Jazz · Soul · Pop</strong></div></div>
       <div className="overlap-tag"><span className="dot" /> A shared love of jazz</div>
     </div>
-    <div className="steps"><div><span>01</span><h2>Make it yours</h2><p>Add your favorites, from chart-toppers to hidden gems.</p></div><div><span>02</span><h2>Bring a friend</h2><p>Find their profile by handle. Sharing is always opt-in.</p></div><div><span>03</span><h2>Find the overlap</h2><p>See exactly what connects your musical worlds.</p></div></div>
+    <div className="steps"><div><span>01</span><h2>Make it yours</h2><p>Add your favorites, from chart-toppers to hidden gems.</p></div><div><span>02</span><h2>Browse profiles</h2><p>Find music matches across the community.</p></div><div><span>03</span><h2>Find the overlap</h2><p>See exactly what connects your musical worlds.</p></div></div>
   </div>
 }
 
@@ -53,6 +53,7 @@ export function AuthScreen({ mode }: { mode: 'login' | 'signup' | 'recover' | 'r
       {mode === 'reset' && !auth.recovery && <Feedback>Open a valid, unused password-recovery link. An ordinary login cannot reset a password here. <Link to="/recover">Request a new link</Link>.</Feedback>}
       {mode !== 'reset' && <label>Email<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} /></label>}
       {mode !== 'recover' && <label>{mode === 'reset' ? 'New password' : 'Password'}<input type="password" minLength={8} required autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={e => setPassword(e.target.value)} /><small>At least 8 characters.</small></label>}
+      {mode === 'signup' && <Feedback kind="info">When you create your profile, your display name and handle will be visible to signed-in users. Comparisons will be on by default, so results can show shared and unique music preferences to both participants. You can turn comparisons off in Settings.</Feedback>}
       <button className="primary" disabled={busy || (mode === 'reset' && !auth.recovery)}>{busy ? 'Please wait…' : ({ login: 'Sign in', signup: 'Create account', recover: 'Send recovery link', reset: 'Set new password' })[mode]}</button>
       <div className="auth-links"><Link to={mode === 'login' ? '/signup' : '/login'}>{mode === 'login' ? 'Create an account' : 'Back to sign in'}</Link>{mode === 'login' && <Link to="/recover">Forgot password?</Link>}</div>
     </form>

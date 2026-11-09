@@ -2,6 +2,10 @@
 
 Status: code implemented through P1, with local automated checks and deployed backend smoke checks. Release gates remain incomplete; see progress below.
 
+Scope update: the all-user directory and click-through comparison are now required for the initial launch and remain unimplemented. Earlier implementation progress does not cover this addition.
+
+Default-on comparison sharing is implemented for new profiles, with signup disclosure and an onboarding opt-out. A one-time migration enables existing profiles, including those previously disabled; later opt-outs remain respected. Signed-in users see a dashboard notice when sharing is enabled.
+
 ## Implementation progress
 
 - Foundation, identity UI/adapter, profiles, preferences, comparison, results/history, and catalog code are present.
@@ -34,12 +38,13 @@ Use the [feature index](./features/README.md) for packet reading scopes and the 
 | 0 | P0 | Confirm scope and unblock tooling | None | Confirm v1 scoring, consent/retention, input limits, repository access, local Supabase prerequisites, and free-tier deployment approach. Record any undecided behavior before coding its feature. |
 | 1 | P0 | Foundation: F00A, F00B | 0 | React/TypeScript builds; targeted test/lint/typecheck commands work; shared result/error types exist; dark/rainbow shell works at mobile and desktop widths. |
 | 2 | P0 | Identity: F01A, F01B | 1 | Signup/login/logout, protected routes, and local recovery tests work; session loss clears protected data. Hosted email readiness is tracked separately. |
-| 3 | P0 | Profiles and consent: F02A, F02B | 2 | Idempotent onboarding, unique handle, explicit opt-in, exact-handle lookup, settings revisions, and ownership tests pass. |
+| 3 | P0 | Profiles and consent: F02A, F02B | 2 | Idempotent onboarding, unique handle, default-on comparison sharing with signup disclosure and onboarding opt-out, exact-handle lookup, settings revisions, and ownership tests pass. |
 | 4 | P0 | Preference vertical slice: F03A, F03B | 3 | Add/edit/remove custom artists, genres, and songs; save/reload/cancel work; duplicates and stale saves fail clearly; rollback and cross-owner tests pass. |
 | 5 | P0 | Comparison creation: F05A, F05B | 4 | Distinct consenting nonempty profiles compare; scores/snapshots persist atomically; unsafe inputs are rejected; retry IDs prevent duplicate attempts. |
 | 6 | P0 | Results and history: F06A, F06B | 5 | Both participants can reopen the same saved result; outsiders cannot; overlap/differences render correctly; later edits do not change history. |
 | 7 | P1 | Catalog completion: F04A, F04B | 4; normally scheduled after 6 | MusicBrainz artists/songs and imported genres are selectable; custom entry remains usable; shared rate limit, cache, source labels, and provider-failure handling are verified. |
-| 8 | P1 | Cross-feature acceptance: F07A | 2-7 | Complete browser journeys, API authorization checks, responsive/accessibility checks, and documented 100-preference timing target pass, with recorded evidence. |
+| 7a | P1 | All-user discovery: F02C, F05C | 3, 6 | Authenticated users can browse every completed profile across pages and select an eligible user for saved comparison; minimal identity exposure, consent rechecks, unavailable states, and matching data points are tested. |
+| 8 | P1 | Cross-feature acceptance: F07A | 2-7, 7a | Complete browser journeys including directory-to-comparison, API authorization checks, responsive/accessibility checks, and documented 100-preference timing target pass, with recorded evidence. |
 | 9 | P1 | Reproducible release: F07B | 8 | Clean setup/build works; approved hosted deployment passes smoke tests; deep links, SMTP/recovery, redirect configuration, safe secrets, and setup instructions are verified. |
 
 ### Critical path
@@ -69,13 +74,13 @@ This proves UC-05, not comparison or catalog completion.
 
 ### Checkpoint B: Core comparison proof
 
-After milestone 6, two opted-in accounts can compare preferences and reopen saved results. Demonstrate 0%, 33.3%, and 100% fixtures, blocked invalid comparisons, participant-only result access, and unchanged snapshots after edits.
+After milestone 6, two comparison-enabled accounts can compare preferences and reopen saved results. Demonstrate 0%, 33.3%, and 100% fixtures, blocked invalid comparisons, participant-only result access, and unchanged snapshots after edits.
 
 This is the first useful end-to-end demo and proves UC-05/UC-06/UC-07. It is not yet the complete requested MVP.
 
 ### Checkpoint C: Feature-complete local MVP
 
-After milestone 8, external artist/song search, genre selection, custom entries, and all core flows pass the acceptance suite. No catalog mock may be substituted for an actual verified provider integration when claiming completion.
+After milestone 8, external artist/song search, genre selection, custom entries, all-user browsing, click-through comparison with shared data points, and all core flows pass the acceptance suite. No catalog mock may be substituted for an actual verified provider integration when claiming completion.
 
 ### Checkpoint D: Released MVP
 
@@ -92,7 +97,7 @@ Address these alongside the ordered roadmap without broadening the current packe
 | MusicBrainz genre endpoint/license suitability | Before F04A | Verify supported import path and field licenses. Document the source; do not introduce an unreviewed alternate provider or scrape as a fallback. |
 | Global MusicBrainz rate limit | F04A | Concurrent-client test shows the shared gate controls outbound calls; debounce alone is insufficient. |
 | Normalization disagreement | F03A | SQL/client fixtures agree on whitespace and case behavior, including representative Unicode input. |
-| Consent and history privacy | F02A/F05A | Document opt-in disclosure and verify opt-out blocks new comparisons while existing snapshots retain participant-only access. |
+| Consent and history privacy | F02A/F05A | Disclose directory visibility and default-on comparison sharing at signup and show enabled sharing on the dashboard; verify opt-out blocks new comparisons while existing snapshots retain participant-only access. The one-time existing-profile update increments affected settings revisions and preserves later opt-outs. |
 
 ## 5. Rules for each model work session
 

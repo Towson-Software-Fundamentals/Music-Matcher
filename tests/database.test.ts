@@ -4,7 +4,12 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { comparisonSchema, normalize, preferenceSetSchema } from '../src/shared/contracts'
 
 const db = new PGlite()
-const users = ['10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002', '10000000-0000-4000-8000-000000000003']
+const users = [
+  '10000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000002',
+  '10000000-0000-4000-8000-000000000003', '10000000-0000-4000-8000-000000000004',
+  '10000000-0000-4000-8000-000000000005', '10000000-0000-4000-8000-000000000006',
+  '10000000-0000-4000-8000-000000000007',
+]
 let a: string, b: string, match: string
 const input = (displayValue: string, type = 'genre') => ({ type, source: 'custom', displayValue })
 async function actor(index: number) {
@@ -36,6 +41,11 @@ beforeAll(async () => {
   `)
   for (const id of users) await db.query('insert into auth.users values($1)', [id])
   for (const migration of readdirSync('supabase/migrations').sort()) {
+    if (migration === '20261108235000_enable_existing_comparisons.sql') {
+      await db.query(`insert into public.music_profiles(owner_id,display_name,handle,comparison_enabled,revision)
+        values ($1,'Existing disabled','existing_disabled',false,3), ($2,'Existing enabled','existing_enabled',true,5)`,
+      [users[5], users[6]])
+    }
     await db.exec(readFileSync(`supabase/migrations/${migration}`, 'utf8'))
   }
   a = await profile(0); b = await profile(1); await profile(2)
@@ -43,6 +53,26 @@ beforeAll(async () => {
 afterAll(() => db.close())
 
 describe('PostgreSQL application contracts', () => {
+  it('defaults new profiles to comparison sharing on and allows opting out during onboarding', async () => {
+    await actor(3)
+    expect((await rpc('ensure_my_profile', { displayName: 'Default User', handle: 'default_user' })).data)
+      .toMatchObject({ comparisonEnabled: true })
+    await actor(4)
+    expect((await rpc('ensure_my_profile', { displayName: 'Private User', handle: 'private_user', comparisonEnabled: false })).data)
+      .toMatchObject({ comparisonEnabled: false })
+  })
+
+  it('enables existing profiles once, advances changed revisions, and permits later opt-out', async () => {
+    await actor(5)
+    expect((await rpc('get_my_profile')).data).toMatchObject({ comparisonEnabled: true, revision: 4 })
+    const update = { displayName: 'Existing disabled', handle: 'existing_disabled', comparisonEnabled: false }
+    expect((await rpc('update_my_profile', { ...update, expectedRevision: 3 })).error?.code).toBe('STALE_WRITE')
+    expect((await rpc('update_my_profile', { ...update, expectedRevision: 4 })).data)
+      .toMatchObject({ comparisonEnabled: false, revision: 5 })
+    await actor(6)
+    expect((await rpc('get_my_profile')).data).toMatchObject({ comparisonEnabled: true, revision: 5 })
+  })
+
   it('creates profiles idempotently and protects handles and revisions', async () => {
     await actor(0)
     expect((await rpc('ensure_my_profile', { displayName: 'Ignored', handle: 'other' })).data).toMatchObject({ id: a, handle: 'user_0' })

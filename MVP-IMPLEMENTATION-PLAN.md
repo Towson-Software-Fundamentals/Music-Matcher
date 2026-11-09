@@ -2,6 +2,8 @@
 
 > Implementation update: the React app and free Supabase backend now exist. See the [README](./README.md) for running the app and the [release handoff](./docs/features/F07-release.md) for verified checks and deferred Auth/SMTP/hosting blockers. The original proposal below is retained as design context, not a claim that every release gate has passed.
 
+> Initial-launch scope addition: browsing all platform user profiles and selecting a user for comparison is required for release. This directory flow is planned, not yet implemented; it replaces exact-handle-only discovery.
+
 ## 1. Goal and source of truth
 
 Build a React web application where two people can save their favorite artists, genres, and songs, then compare their tastes without connecting a streaming account.
@@ -22,7 +24,7 @@ The first release should deliver:
 2. One music profile per account.
 3. External catalog search and custom entries for artists, genres, and songs.
 4. Atomic preference editing with Save and Cancel.
-5. Comparison with another eligible, consenting profile.
+5. A browsable directory of all platform user profiles, with click-through comparison against another eligible, consenting profile.
 6. A saved compatibility score with shared and unique preferences.
 7. A polished, responsive dark interface with rainbow-gradient accents.
 
@@ -65,11 +67,23 @@ The browser never receives a PostgreSQL connection string or privileged Supabase
 | --- | --- |
 | Welcome / authentication | Product introduction; sign up, sign in, and forgot-password links. |
 | Password recovery | Send recovery email; accept a valid recovery session and set a new password. |
-| Dashboard | Preference counts, Edit Preferences action, Compare action, and recent saved comparisons. |
+| Dashboard | Preference counts, Edit Preferences action, Browse Users action, and recent saved comparisons. |
+| Browse users | Show all platform user profiles to signed-in users, with display names and handles; page through the full directory and select a user to compare. |
 | Preference editor | Artists / Genres / Songs tabs, search suggestions, selected chips, custom-entry action, Save, and Cancel. |
-| Compare | Look up a consenting profile by exact unique handle, review selection, and compare. |
+| Compare | Review a user selected from the directory, compare against your saved profile, and open shared artists, genres, songs, differences, and the compatibility score. Exact-handle lookup remains an alternate entry point. |
 | Results | Percentage, participant names, shared items, unique-to-you items, unique-to-them items, and comparison timestamp. |
 | Profile settings | Display name, unique handle, and an explicit comparison-sharing toggle. |
+
+### User browsing and comparison
+
+- Make every completed platform profile browsable, not just recommended matches or profiles whose handles are already known. Account onboarding must create a profile before entering the directory.
+- Use authenticated, paginated directory reads with stable ordering so every profile remains reachable without loading the entire user base at once.
+- Display only minimal identity (profile ID, display name, handle) and comparison availability. Do not expose email, Auth records, or raw music preferences.
+- Keep profiles with sharing disabled browsable, but mark comparison unavailable; mark the signed-in user's own profile as yours and prevent self-comparison.
+- Selecting an available user opens the selected-target comparison screen. The comparison action uses the existing saved-comparison transaction and results view, rather than a separate scoring implementation.
+- Preserve explicit comparison consent for both participants and nonempty-preference requirements. Recheck eligibility on the server when comparing, even if the directory previously showed availability.
+- Disclose at signup and profile creation that display names and handles are visible to signed-in users and comparison sharing is on by default. The profile-creation toggle starts checked; users can turn it off before saving or later in settings. Opting out blocks new comparisons, not directory identity visibility.
+- Provide loading, empty-directory, pagination, failure/retry, and target-no-longer-available states; keep browsing usable when comparison is unavailable.
 
 ### Editing behavior
 
@@ -134,7 +148,7 @@ Catalog IDs are metadata in algorithm version 1. Both catalog and custom entries
 | Entity | Key fields and constraints |
 | --- | --- |
 | `auth.users` | Supabase-managed account identity; never duplicate passwords in application tables. |
-| `music_profiles` | UUID, unique owner FK to `auth.users`, display name, unique normalized handle, `comparison_enabled` default false, timestamps. One profile per account. |
+| `music_profiles` | UUID, unique owner FK to `auth.users`, display name, unique normalized handle, `comparison_enabled` default true for new profiles, timestamps. One profile per account. A one-time migration enables comparisons for existing profiles too. |
 | `music_preferences` | UUID, profile FK, type restricted to artist/genre/song, display value, normalized value, optional catalog FK; unique `(profile_id, type, normalized_value)`. |
 | `catalog_items` | Provider, entity type, external ID, display label, source URL, attribution; unique provider/type/external ID. Only trusted server code imports catalog metadata. |
 | `matches` | UUID, two distinct profile FKs, requester FK, score constrained to 0..1, immutable participant/preference snapshots, shared and unique items, algorithm version, timestamp. |
@@ -145,7 +159,7 @@ Keep profile IDs separate from Auth user IDs to preserve the draft's model. Acco
 ### Server operations
 
 1. `save_my_preferences(items)`: derive owner from `auth.uid()`, validate every entry and catalog reference, reject duplicates, replace the set atomically, and return saved entries. Serialize concurrent saves by locking the profile row.
-2. `lookup_comparison_profile(handle)`: return minimal profile identity only for an exact handle with sharing enabled; do not expose email or a browsable user directory.
+2. Profile discovery: add `list_platform_profiles` for authenticated, paginated minimal directory identities and comparison availability, including sharing-disabled profiles. Keep `lookup_comparison_profile(handle)` as an alternate exact-handle lookup for sharing-enabled targets. Neither operation exposes email or raw preferences.
 3. `create_comparison(target_profile_id)`: derive requester, validate distinct existing eligible profiles with nonempty preferences, read both sets from one consistent snapshot, calculate the result, persist snapshots, and return its ID.
 4. Result retrieval: read a stored result only if the signed-in user is one of its participants.
 5. Catalog Edge Function: authenticate callers, enforce rate and input limits, obtain cached/provider results, and persist only validated metadata.
@@ -154,7 +168,7 @@ Use RLS on exposed application tables. Profiles and preferences are owner-readab
 
 Owner-facing profile updates may use RLS-protected writes. Revoke direct preference replacement and match insertion privileges so callers cannot bypass transactional validation. Functions that need controlled access beyond ordinary owner RLS must use tightly scoped `SECURITY DEFINER`, an explicit safe `search_path`, fully qualified relations, caller/eligibility checks, and explicit EXECUTE grants only to the intended authenticated role. Revoke default PUBLIC/anon execution. Test these boundaries through the API, not only the UI.
 
-Enabling sharing explicitly permits other authenticated users who know the handle to obtain a comparison, including the shared and unique preferences disclosed in its result. Explain this before opt-in. Both participants must enable sharing for new comparisons. Disabling it blocks new comparisons but does not erase historical snapshots; disclose that behavior.
+All completed profile identities are visible in the authenticated directory; disclose this at signup and in profile creation/settings. New profiles default to comparison-enabled, with the control checked and editable before profile creation. A one-time migration also enables existing profiles, including those previously disabled, and increments the settings revision for changed rows. Show signed-in users when comparison sharing is on. Explain that comparisons disclose shared and unique preferences to both participants, and allow opting out before saving or later in settings. Both participants must have sharing enabled for new comparisons. Disabling it blocks new comparisons but does not hide directory identity or erase historical snapshots; disclose that behavior. Later opt-outs remain in effect.
 
 Privileged keys and SMTP credentials remain server-side. Only the Supabase project URL and publishable key belong in frontend environment variables. Sanitize database/provider errors for users and retain useful server logs without credentials or recovery tokens.
 
@@ -204,10 +218,10 @@ Estimates are initial engineering effort, not commitments from the Sprint 3 repo
 | 2. Identity and database | Reproducible migrations, Auth screens, profile creation, RLS/grants, consent setting, recovery flow, and isolated fixtures. | 1 | 5-8 hours |
 | 3. Preference vertical slice | Custom artist/genre/song entry, normalized validation, Save/Cancel, atomic RPC, and persistence after reload. | 2 | 5-7 hours |
 | 4. Catalog integration | MusicBrainz search, imported genres, source labels, shared rate gate, cache, and visible failure/retry behavior. | 3 | 4-7 hours |
-| 5. Comparison vertical slice | Exact-handle lookup, eligible-profile checks, deterministic saved comparison, overlap/differences, and history. | 3 | 5-8 hours |
+| 5. Comparison vertical slice | Browsable all-user directory, selected-user comparison, alternate exact-handle lookup, eligible-profile checks, deterministic saved comparison, overlap/differences, and history. | 3 | Re-estimate for directory addition |
 | 6. Acceptance and deployment | Automated tests, responsive/accessibility checks, clean setup rehearsal, deployed smoke test, screenshots, and updated report. | 4, 5 | 5-8 hours |
 
-Total planning range: **28-45 engineering hours**, excluding optional AI and any email-domain acquisition. Catalog integration and comparison can proceed independently after the preference contract is stable.
+Original planning range: **28-45 engineering hours**, excluding optional AI and any email-domain acquisition; re-estimate the directory addition before scheduling. Catalog integration and comparison can proceed independently after the preference contract is stable.
 
 For a tight Sprint 3 deadline, prioritize phases 1-3 and 5 to prove UC-05 and UC-06, then complete catalog integration before calling the requested initial MVP finished. Do not label custom-entry-only preference screens as completed external-catalog support.
 
@@ -242,6 +256,7 @@ Automate the draft's T01-T17 and T19 acceptance cases. Run T18 only when an actu
 | Atomicity | Force an error after replacement begins and verify the entire old set remains. Test concurrent saves do not interleave sets. |
 | Authorization | Anonymous and cross-account requests cannot edit preferences; direct-write/RPC bypass attempts fail; nonparticipants cannot read results. |
 | Eligibility | Same, missing, empty, or nonconsenting profiles are rejected without creating a result. |
+| User discovery | Every completed profile is reachable across directory pages, including sharing-disabled users; only minimal identity/availability is exposed to authenticated callers. Self-comparison is blocked, errors are visible, and selecting an eligible user leads to a persisted result showing shared artists/genres/songs, differences, and score. Consent changes between browsing and comparing are rechecked. |
 | Scoring | Full overlap = 100%; none = 0%; sample partial overlap = 33.3%; case/whitespace normalize; types remain distinct; custom/catalog same-label entries match. |
 | History | Reload returns the same saved score and snapshots after either profile is edited. |
 | Catalog | Artist/song search, genre selection, custom entries, homonym labels, cache hits, rate gate across concurrent clients, provider failure, and stale-response handling. |
@@ -275,7 +290,7 @@ Provider timeout, missing configuration, or quota exhaustion must leave the save
 
 1. Adopt Supabase managed APIs/functions instead of the draft's Express backend.
 2. Keep the draft's equal-weight text-based Jaccard score for version 1.
-3. Use opt-in, exact-handle comparison with the snapshot-retention behavior described above.
+3. Initial-launch discovery includes all platform profiles, with click-through comparison; default new profiles to comparison-enabled, disclose directory visibility and result sharing at signup, preserve an opt-out, and retain snapshot rules.
 4. Use MusicBrainz for this non-commercial release; keep custom entries private to their owners.
 5. Deliver AI after the initial MVP unless the course team explicitly requires it in the first release.
 6. Select a free deployment target and verify an email delivery route before promising public signup and recovery.
