@@ -29,6 +29,7 @@ async function mockBackend(page: Page, signedIn = true) {
     const url = new URL(route.request().url())
     if (url.pathname === '/auth/v1/user') return route.fulfill({ json: user })
     if (url.pathname === '/auth/v1/logout') return route.fulfill({ status: 204 })
+    if (url.pathname === '/auth/v1/recover') return route.fulfill({ json: {} })
     if (url.pathname.includes('/functions/')) return route.fulfill({ status: 503, json: { data: null, error: { code: 'CATALOG_UNAVAILABLE', message: 'Catalog unavailable. Add a custom entry or retry.' } } })
     const request = route.request().postDataJSON()?.p_request ?? {}
     let data: unknown = null
@@ -67,6 +68,22 @@ test('welcome is responsive and ordinary sessions cannot unlock recovery', async
   await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible()
   await page.goto('/reset-password')
   await expect(page.getByRole('button', { name: 'Set new password' })).toBeDisabled()
+})
+
+test('a recovery callback can restore its intent after the auth session loads', async ({ page }) => {
+  await mockBackend(page)
+  await page.goto('/recover')
+  await page.getByLabel('Email').fill('demo@example.invalid')
+  await page.getByRole('button', { name: 'Send recovery link' }).click()
+  await expect(page.getByRole('status')).toContainText('check its inbox')
+
+  await page.goto('/reset-password')
+  await expect(page.getByLabel('New password')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Set new password' })).toBeEnabled()
+  await page.getByLabel('New password').fill('a-test-only-password')
+  await page.getByRole('button', { name: 'Set new password' }).click()
+  await expect(page).toHaveURL(/\/dashboard$/)
+  expect(await page.evaluate(() => localStorage.getItem('music-matcher-recovery-requested-at'))).toBeNull()
 })
 
 test('edits custom preferences, saves, cancels and reloads without losing stored values', async ({ page }) => {

@@ -19,7 +19,7 @@ The app and backend implementation are present. A free Supabase project was crea
 
 All three migrations and catalog Edge Function version 2 were applied to that project. Seven verified MusicBrainz genres are seeded. The local ignored `.env` contains only the project URL and publishable key, not privileged credentials.
 
-**Not release-complete:** Auth URL configuration, real email delivery/recovery, signed-in live catalog search, and public frontend hosting remain unverified. The user explicitly deferred these setup steps. Do not treat mocked browser tests or SQL fixture tests as proof of email authentication.
+**Not release-complete:** Supabase Auth URLs and Resend SMTP are configured; Resend verifies `matchmymusic.app`, and a real recovery email was delivered and used successfully against the local app. A recovery-callback fix is implemented and tested locally but has not been deployed, so the production reset flow remains unverified. The public site responds over HTTPS, but deep-link reloads, signed-in catalog search, and a live two-account journey remain unverified. Do not treat mocked browser tests or SQL fixture tests as proof of those release gates.
 
 ## Run the application
 
@@ -36,15 +36,27 @@ In the current workspace, `.env` is already configured for the approved project;
 
 Open http://127.0.0.1:5180. A missing/invalid configuration shows an explicit setup screen; there is no production mock backend.
 
-### Configure hosted authentication before testing accounts
+### Hosted authentication configuration
 
 In [Auth URL Configuration](https://supabase.com/dashboard/project/cilswqtuswmuktzhifsn/auth/url-configuration):
 
-- Site URL: `http://127.0.0.1:5180`
-- Redirect allowlist: `http://127.0.0.1:5180/login` and `http://127.0.0.1:5180/reset-password`
-- When deploying publicly, add the corresponding HTTPS URLs and use the public Site URL.
+- Site URL: `https://matchmymusic.app`
+- Redirect allowlist includes `/login` and `/reset-password` on `https://matchmymusic.app`, `https://music-matcher.nerva-corporation.workers.dev`, and `http://127.0.0.1:5180`.
 
-Supabase's default email delivery is restricted and rate-limited; configure [custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp) for general users. Do not disable confirmation just to claim recovery works.
+These settings were verified in the Supabase dashboard on November 8, 2026.
+
+Custom SMTP is enabled using Resend:
+
+- Sender: `Party Music Matcher <no-reply@matchmymusic.app>`
+- SMTP: `smtp.resend.com`, port `465`, username `resend`
+- The sending domain is verified. Supabase stores the Resend API key; its secret is not in this repository.
+- The key has Sending access and was scoped to all domains because Resend's domain selector was unavailable. The account currently has only `matchmymusic.app`.
+
+The Resend one-click Supabase integration was not used because its domain selector was empty. An organization-wide Resend OAuth grant for Auth and Projects read/write was authorized during setup and is unused by the manual SMTP configuration; revoke it if the integration will not be used.
+
+The real recovery email was marked delivered by Resend. Its link worked when opened in the browser profile that requested it, and the password reset completed against the local app. Recovery links use PKCE; open them in the same browser profile that requested them. Do not disable confirmation to work around email configuration.
+
+Pushing the recovery callback fix to `main` triggers the Cloudflare Worker build and deployment. Verify that build succeeds and retest a production password reset before considering recovery complete.
 
 To try the complete experience after email setup:
 

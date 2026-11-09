@@ -8,7 +8,7 @@ Status: code implemented through P1, with local automated checks and deployed ba
 - Free Supabase project `cilswqtuswmuktzhifsn` created with user approval; migrations and authenticated catalog function deployed.
 - Typecheck, lint, unit/database tests, and desktop/mobile browser tests pass. Browser tests mock service responses and do not prove hosted email authentication.
 - Live hosted SQL smoke passed; anonymous access was rejected; catalog CORS preflight passed.
-- User explicitly deferred Auth URL/SMTP setup and public hosting. Real account confirmation/recovery and signed-in MusicBrainz search remain unverified.
+- Supabase Auth URLs and Resend SMTP are configured; the sending domain is verified and a real recovery email was delivered. A local recovery-callback fix passes focused browser tests and the user completed a local password reset. The fix is not deployed, so production recovery remains unverified. The public site responds over HTTPS; deep-link reloads, signed-in MusicBrainz search, and the live two-account journey remain open.
 - **Checkpoint D is blocked, not complete.** Checkpoints A/B have SQL and mocked-browser evidence, not a fully authenticated live two-account demonstration. Checkpoint C still needs that live integration evidence.
 
 See [setup and verification](../README.md) and [F07 release handoff](./features/F07-release.md) for the next actions.
@@ -136,4 +136,4 @@ Re-estimate after Checkpoint A using actual packet duration and blockers. Assign
 
 ## Next action
 
-Confirm milestone 0 decisions, then execute **F00A: scaffold, tooling, transport, and shared contract types**. Do not provision remote resources or alter production schemas merely because they appear on this roadmap.
+Verify that the approved push to `main` completes the Cloudflare Worker deployment, then retest password reset there using the same browser profile that requested the link. Continue **F07A** with signed-in catalog search and a live two-account comparison/history journey; complete deep-link and clean-setup checks before claiming release readiness. Do not provision remote resources or alter production schemas merely because they appear on this roadmap.

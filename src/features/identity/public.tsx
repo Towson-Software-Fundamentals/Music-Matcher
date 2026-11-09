@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../../shared/client'
+import { clearRecoveryRequest, hasRecentRecoveryRequest } from './api'
 export { AuthScreen, Welcome } from './screens'
 export { authenticate, requestRecovery, completeRecovery, signOut } from './api'
 
@@ -18,13 +19,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null)
       setLoading(false)
       if (event === 'PASSWORD_RECOVERY') setRecovery(true)
-      if (event === 'SIGNED_OUT') setRecovery(false)
+      if (event === 'SIGNED_OUT') { setRecovery(false); clearRecoveryRequest() }
     })
     let active = true
     void supabase.auth.getSession().then(result => {
       if (!active) return
       if (result.error) setError('Your session could not be restored. Please sign in again.')
       setUser(result.data.session?.user ?? null)
+      if (result.data.session && location.pathname === '/reset-password' && hasRecentRecoveryRequest()) setRecovery(true)
       setLoading(false)
     })
     return () => { active = false; data.subscription.unsubscribe() }

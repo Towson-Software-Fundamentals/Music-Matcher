@@ -1,6 +1,6 @@
 # F07: Integration and reproducible release
 
-Status: partial; live Auth/SMTP and frontend hosting explicitly deferred. Dependencies: F01, F04, F06 and their completed prerequisites.
+Status: partial; Auth URLs and custom SMTP are configured, and local recovery is verified. The recovery fix is ready for the approved main-branch deployment; production reset verification, signed-in catalog, live two-account acceptance, and frontend release checks remain. Dependencies: F01, F04, F06 and their completed prerequisites.
 
 ## Ownership and API boundary
 
@@ -61,9 +61,9 @@ Passed:
 
 Deployed: free project `cilswqtuswmuktzhifsn`, three migrations, catalog function v2, seven starter genres. Local dev server is responsive at http://127.0.0.1:5180.
 
-Blocked/unrun: real signup confirmation/recovery, signed-in deployed catalog search, live two-account browser journey, multi-connection races, full genre import, Docker/CLI clean setup, hosted frontend deep links, and public HTTPS release. User chose to defer Auth URL/SMTP and public hosting. Provider 503s occurred during metadata retrieval. No email-delivery or provider uptime claim is made.
+Blocked/unrun: signup confirmation using the newly configured Resend sender, production recovery after the callback fix deploys, signed-in deployed catalog search, live two-account browser journey, multi-connection races, full genre import, Docker/CLI clean setup, hosted frontend deep links, and final public release acceptance. Auth URLs and SMTP are now configured, and the public site responds over HTTPS. Provider 503s occurred during metadata retrieval. No provider uptime claim is made.
 
-Next: follow [README setup](../../README.md), complete Auth/SMTP, exercise real accounts/search, configure a free static host and `APP_ORIGIN`, and repeat live acceptance. This is implemented code with a deployed backend, **not a completed release gate**.
+Next: verify the approved main-branch deployment and production recovery, then exercise signed-in catalog search and the live two-account comparison/history journey. Complete the remaining clean-setup and deep-link checks before marking release acceptance. This is implemented code with a deployed backend, **not a completed release gate**.
 
 ## Verification handoff — November 2, 2026 (Windows workspace)
 
@@ -81,3 +81,20 @@ Passed in this workspace:
 Still unverified: real signup confirmation and recovery, signed-in hosted catalog search, live two-account comparison/history, multi-connection race behavior, clean local-stack setup from reset, hosted deep-link reload, and public HTTPS deployment. These require live email/account access and a hosting target. The local Supabase CLI and stack availability does not close those gates.
 
 Next packet: complete F07A with two consenting real accounts after Auth redirects and email delivery are configured; verify catalog search, preference persistence, comparison consent, and history. Then complete F07B against a selected static host, including deep-link fallback and public HTTPS checks. Do not mark F07 release-complete until both packets have recorded evidence.
+
+## Verification handoff — November 8, 2026 (macOS workspace)
+
+Scope: hosted Auth/SMTP setup and recovery testing. No production frontend deployment was performed.
+
+- Supabase Site URL is `https://matchmymusic.app`; the allowlist includes `/login` and `/reset-password` for the public site, the existing Workers URL, and local `127.0.0.1:5180`.
+- Resend domain `matchmymusic.app` was verified after adding its DKIM TXT and DNS-only CNAME records in Cloudflare.
+- Supabase custom SMTP is enabled with sender `Party Music Matcher <no-reply@matchmymusic.app>`, host `smtp.resend.com`, port `465`, and username `resend`. A Resend Sending-access API key is stored in Supabase; the key's domain scope is all domains because the domain selector was unavailable.
+- A Resend recovery email was marked **Delivered**. The first production reset link verified at Supabase, but the deployed frontend did not recognize the recovery session.
+- Fixed the client recovery callback state in `src/features/identity/api.ts` and `src/features/identity/public.tsx`; added a full mocked recovery flow in `tests/e2e/app.spec.ts`. `npm run typecheck`, `npm run lint`, and `npx playwright test tests/e2e/app.spec.ts --grep 'recovery'` passed (4 browser cases across desktop/mobile).
+- The user completed a recovery/password reset using the local app after pasting the link into the same Chrome profile that requested it. PKCE links are bound to that browser's verifier; opening a link in another profile can fail.
+- The public site at `https://matchmymusic.app` responded over HTTPS, but the callback fix remains local and production password recovery is still unverified until the frontend is deployed and retested.
+- Resend's one-click Supabase integration was not used because its domain list was empty. The user authorized its Auth/Projects read-write OAuth grant; it is unused by manual SMTP and should be revoked if the integration is not needed.
+
+No Supabase schema or email-confirmation policy changed. The full automated suite was not rerun after the focused identity test.
+
+Next: verify the approved deployment and production reset flow. Continue F07A with signed-in catalog search and a live two-account comparison/history journey. Deep-link reload, clean setup, and other release checks remain open; do not mark F07 complete yet.
