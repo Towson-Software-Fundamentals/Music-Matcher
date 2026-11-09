@@ -1,6 +1,6 @@
 # F07: Integration and reproducible release
 
-Status: partial; Auth URLs and custom SMTP are configured, and local recovery is verified. The recovery fix is ready for the approved main-branch deployment; production reset verification, signed-in catalog, live two-account acceptance, and frontend release checks remain. Dependencies: F01, F04, F06 and their completed prerequisites.
+Status: partial; Auth URLs and custom SMTP are configured, the recovery fix and default-on sharing update are deployed to the Cloudflare Worker, and the signup disclosure is browser-verified. Production reset verification, signed-in catalog, live two-account acceptance, and frontend release checks remain. Dependencies: F01, F04, F06 and their completed prerequisites.
 
 ## Ownership and API boundary
 
@@ -97,4 +97,12 @@ Scope: hosted Auth/SMTP setup and recovery testing. No production frontend deplo
 
 No Supabase schema or email-confirmation policy changed. The full automated suite was not rerun after the focused identity test.
 
-Next: verify the approved deployment and production reset flow. Continue F07A with signed-in catalog search and a live two-account comparison/history journey. Deep-link reload, clean setup, and other release checks remain open; do not mark F07 complete yet.
+## Deployment handoff — November 8, 2026
+
+- Pushed commit `3ab35b4` to `main`; the connected Cloudflare Worker deployed the frontend at `https://matchmymusic.app`.
+- Supabase migrations `default_comparison_sharing` and `enable_existing_comparisons` are applied. A read-only count verified 2 profiles enabled and 0 disabled.
+- Opened `/signup` in a browser and verified the deployed default-on sharing disclosure.
+- Tests before deployment: unit/database suite (17 passing), lint, production build, and the sharing-notice/opt-out browser journey on desktop and mobile (2 passing).
+- Production password reset, directory-to-comparison, signed-in catalog, live two-account acceptance, and deep-link reload remain unverified.
+
+Next: verify production recovery and continue F07A with signed-in catalog search and a live two-account comparison/history journey. Deep-link reload, clean setup, and other release checks remain open; do not mark F07 complete yet.

@@ -17,9 +17,9 @@ The app and backend implementation are present. A free Supabase project was crea
 - Project reference: `cilswqtuswmuktzhifsn`
 - Local application: **http://127.0.0.1:5180**
 
-All three migrations and catalog Edge Function version 2 were applied to that project. Seven verified MusicBrainz genres are seeded. The local ignored `.env` contains only the project URL and publishable key, not privileged credentials.
+All five migrations and catalog Edge Function version 2 are applied to that project. Seven verified MusicBrainz genres are seeded. The local ignored `.env` contains only the project URL and publishable key, not privileged credentials.
 
-**Not release-complete:** Supabase Auth URLs and Resend SMTP are configured; Resend verifies `matchmymusic.app`, and a real recovery email was delivered and used successfully against the local app. A recovery-callback fix is implemented and tested locally but has not been deployed, so the production reset flow remains unverified. The public site responds over HTTPS, but deep-link reloads, signed-in catalog search, and a live two-account journey remain unverified. Do not treat mocked browser tests or SQL fixture tests as proof of those release gates.
+**Not release-complete:** Supabase Auth URLs and Resend SMTP are configured; Resend verifies `matchmymusic.app`, and a real recovery email was delivered and used successfully against the local app. The recovery-callback fix and default-on comparison-sharing update were pushed to `main` and deployed to the Cloudflare Worker; the deployed signup disclosure was verified in a browser. Production password reset, deep-link reloads, signed-in catalog search, and a live two-account journey remain unverified. Do not treat mocked browser tests or SQL fixture tests as proof of those release gates.
 
 ## Run the application
 
@@ -56,14 +56,14 @@ The Resend one-click Supabase integration was not used because its domain select
 
 The real recovery email was marked delivered by Resend. Its link worked when opened in the browser profile that requested it, and the password reset completed against the local app. Recovery links use PKCE; open them in the same browser profile that requested them. Do not disable confirmation to work around email configuration.
 
-Pushing the recovery callback fix to `main` triggers the Cloudflare Worker build and deployment. Verify that build succeeds and retest a production password reset before considering recovery complete.
+The deployed frontend is built by the Cloudflare Worker connected to `main`. Retest a production password reset before considering recovery complete.
 
 To try the complete experience after email setup:
 
 1. Sign up, confirm email, and sign in.
 2. Create a display name and unique handle.
 3. Add artists, genres, and songs, from search or as custom entries, then Save.
-4. Enable comparison sharing in Settings.
+4. Review the default-on comparison-sharing setting when creating a profile; turn it off there or later in Settings if preferred.
 5. Have a second consenting account do the same, then look it up by exact handle.
 6. Compare and reopen the saved result from the dashboard.
 
