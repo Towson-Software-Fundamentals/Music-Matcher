@@ -36,6 +36,7 @@ Tests, clear interfaces, and persistent documentation carry context between sess
 | F06 | [Results and history](./F06-results.md) | F05 | A: authorized read APIs; B: results/history/dashboard |
 | F07 | [Release integration](./F07-release.md) | F04, F06, F01 | A: full-flow/accessibility acceptance; B: reproducible setup/deployment |
 | F08 | [AI comparison insights (DeepSeek)](./F08-ai.md) | F05, F06, F02 | A: consent/storage/quota; B: Edge Function + provider; C: results panel + settings; D: live T18 check (planned follow-up) |
+| F09 | [Streaming import (Spotify beta)](./F09-streaming-import.md) | F03, F01 | A: PKCE client + mapping; B: callback route + review UI; C: beta setup + live check (planned follow-up, 5-tester limit) |
 
 F04 and F05 can proceed independently after F03, but do not modify shared contracts or migrations concurrently without coordinating ownership. Default to serial execution; this plan does not require multiple agents.
 

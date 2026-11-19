@@ -47,6 +47,7 @@ Use the [feature index](./features/README.md) for packet reading scopes and the 
 | 8 | P1 | Cross-feature acceptance: F07A | 2-7, 7a | Complete browser journeys including directory-to-comparison, API authorization checks, responsive/accessibility checks, and documented 100-preference timing target pass, with recorded evidence. |
 | 9 | P1 | Reproducible release: F07B | 8 | Clean setup/build works; approved hosted deployment passes smoke tests; deep links, SMTP/recovery, redirect configuration, safe secrets, and setup instructions are verified. |
 | 10 | P2 | AI insights: F08A-D ([plan](./features/F08-ai.md)) | 6; F08A-C may run alongside 7a | Both participants opt in; DeepSeek explanation/recommendations are generated from saved snapshots only, cached per comparison, quota-limited, and labeled as AI; results stay usable when AI is unavailable; T18 passes against the live backend. |
+| 11 | P2 | Spotify import beta: F09A-C ([plan](./features/F09-streaming-import.md)) | 4 | Allowlisted testers import top artists/songs (and genres when available) into the unsaved preference draft; nothing is saved until Save; no Spotify token or history is stored; cancel, not-allowlisted, and provider failures leave the editor usable. |
 
 ### Critical path
 
