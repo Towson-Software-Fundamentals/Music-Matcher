@@ -50,7 +50,9 @@ Sources: [Luminate 2025 Year-End Music Report](https://luminatedata.com/reports/
 
 **Locally:** `supabase db reset` runs `supabase/seed.sql` automatically after the migrations.
 
-**Production:** this doesn't happen automatically, and it creates 12 accounts and public profiles on the live project, so only do it on purpose. Run the contents of `supabase/seed.sql` in the Supabase dashboard SQL editor for project `cilswqtuswmuktzhifsn`. The seed fails if a real user already has one of the `demo_*` handles.
+**Production:** this doesn't happen automatically, and it creates 12 accounts and public profiles on the live project, so only do it on purpose. Run the contents of `supabase/seed.sql` in the Supabase dashboard SQL editor for project `cilswqtuswmuktzhifsn`. The seed fails if a real user already has one of the `demo_*` handles. From `supabase/production`, `npx supabase db query --remote=cilswqtuswmuktzhifsn --yes -f ../seed.sql` does the same thing.
+
+Production was seeded on 2026-11-19. All 12 personas were created with sharing on and sign-in locked. The F08A migration wasn't applied yet, so AI consent was skipped. Run the seed again after F08A is applied to opt the personas in.
 
 **Removing them:** delete the persona users. Their profiles and preferences are deleted with them. Saved comparisons that include a persona block the delete, because `matches` doesn't cascade, so delete those comparisons first.
 

@@ -81,7 +81,7 @@ supabase status
 supabase functions serve catalog-search --no-verify-jwt
 ```
 
-`supabase db reset` also runs `supabase/seed.sql`, which adds twelve fictional listener personas you can compare against by handle (for example `demo_rock`). They aren't in production. See [docs/DEMO-PERSONAS.md](docs/DEMO-PERSONAS.md).
+`supabase db reset` also runs `supabase/seed.sql`, which adds twelve fictional listener personas you can compare against by handle (for example `demo_rock`). They were also seeded to production on 2026-11-19. See [docs/DEMO-PERSONAS.md](docs/DEMO-PERSONAS.md).
 
 The Edge Function validates bearer tokens with `auth.getUser` itself. Disabling the gateway's legacy JWT verifier is intentional for modern publishable-key compatibility; it does not make search anonymous.
 
