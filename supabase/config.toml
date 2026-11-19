@@ -29,3 +29,6 @@ enable_confirmations = true
 
 [functions.catalog-search]
 verify_jwt = false
+
+[functions.comparison-insight]
+verify_jwt = false

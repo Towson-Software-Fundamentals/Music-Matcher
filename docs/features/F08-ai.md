@@ -1,6 +1,6 @@
 # F08: AI comparison insights (DeepSeek)
 
-Status: F08A (consent, storage, quota gate) implemented and tested locally; F08B–D planned. Dependencies: F05 (saved snapshots), F06 (results screen), F02 (profile settings). Read: shared contract, F05 `ComparisonSnapshot`, F06 `getComparison`, F02 settings API, and the `catalog-search` Edge Function as the server pattern to copy.
+Status: F08A (consent, storage, quota gate) and F08B (Edge Function) are implemented and tested locally. Neither is deployed. F08C and F08D are planned. Dependencies: F05 (saved snapshots), F06 (results screen), F02 (profile settings). Read: shared contract, F05 `ComparisonSnapshot`, F06 `getComparison`, F02 settings API, and the `catalog-search` Edge Function as the server pattern to copy.
 
 This packet implements the optional follow-up in [MVP plan §12](../../MVP-IMPLEMENTATION-PLAN.md#12-optional-follow-up-ai) and acceptance case **T18**. It does not change scoring, snapshots, or the `jaccard-text-v1` algorithm.
 
@@ -165,4 +165,34 @@ Recommended order: `F08A → F08B → F08C → F08D`. F08A–C can run alongside
   - Caps are passed in by the Edge Function from `AI_USER_DAILY_CAP` and `AI_GLOBAL_DAILY_CAP`.
 - Tests: [`tests/ai-insights.test.ts`](../../tests/ai-insights.test.ts) has 8 PGlite tests. They cover the default-off setting, validation and stale writes, outsider denial, consent from both participants, opt-out after an insight exists, duplicate in-flight requests, no names, handles or IDs in the provider input, first-write-wins saves, cached reads not using quota, user and global caps, and grants and RLS for `authenticated` and `anon`.
 - 2026-11-18: `npm test` (25/25), `npm run lint` and `npm run typecheck` passed. Not yet run against the Supabase CLI's local Postgres, and not yet applied to the hosted project. Applying the migration to the hosted project needs approval.
-- **Next: F08B.** Build the `comparison-insight` Edge Function, modeled on `catalog-search`. It calls `ai_gateway` to reserve, sends a DeepSeek request with reasoning off and JSON output, validates the response with zod, removes items already in either set, then calls `save`, or `release` on failure. Map gateway outcomes to `AI_CONSENT_REQUIRED`, `RATE_LIMITED`, `NOT_FOUND` and `AI_UNAVAILABLE`.
+**F08B — done (local).**
+
+- Files are in [`supabase/functions/comparison-insight/`](../../supabase/functions/comparison-insight/):
+  - `prompt.ts`: `PROMPT_VERSION = 'insight-v1'`, a fixed system prompt for each kind, the comparison data sent as JSON in the user message, strict zod output schemas, removal of control characters, and filtering of recommendations. It drops items already in either set (including a saved song title matching "Title - Artist"), removes duplicates and keeps at most 5.
+  - `provider.ts`: the OpenAI-compatible `chat/completions` adapter. It turns reasoning off, uses JSON output, sends `max_tokens: 800` and accepts only `https` base URLs.
+  - `handler.ts`: `createHandler(deps)`, written so it can be tested without Deno, the network or the database.
+  - `index.ts`: Deno wiring using the service-role client.
+- Request: `POST {matchId, kind}` with a user JWT. A successful response is `{data: {matchId, kind, promptVersion, model, content, createdAt}}`, the same shape as `get_comparison_insight().insight`. Errors:
+
+  | HTTP | Code | When |
+  |---|---|---|
+  | 400 | `VALIDATION_FAILED` | bad request body |
+  | 401 | `UNAUTHENTICATED` | missing or invalid session |
+  | 403 | `AI_CONSENT_REQUIRED` | one or both people haven't opted in; includes `consent: {you, them}` |
+  | 404 | `NOT_FOUND` | not a participant, or no such result |
+  | 429 | `RATE_LIMITED` | daily limit or request already in progress; includes `retryAfterSeconds` and a `Retry-After` header |
+  | 503 | `AI_UNAVAILABLE` | AI switched off, not configured, or the provider failed |
+- Behavior:
+  - The function checks the kill switch and its configuration before calling auth, the gateway or the provider.
+  - Blank or invalid model output is retried once. Timeouts, network errors and HTTP errors are not retried.
+  - Every failure after a slot is reserved calls `release`.
+  - Logs contain only the result, reason, HTTP status, time taken and token counts.
+- Configuration (env):
+  - `AI_ENABLED` must be `true`.
+  - `DEEPSEEK_API_KEY` (set in production on 2026-11-19).
+  - Optional: `AI_BASE_URL`, `AI_MODEL` (default `deepseek-flash`), `AI_TIMEOUT_MS` (default 20000), `AI_USER_DAILY_CAP` (default 10) and `AI_GLOBAL_DAILY_CAP` (default 300).
+  - `verify_jwt = false` is set in `supabase/config.toml`, the same as `catalog-search`. The function checks the token itself.
+- `tsconfig.json` now allows `.ts` import extensions, so Vitest and `tsc` can load the function's Deno-style imports.
+- Tests: [`tests/insight-function.test.ts`](../../tests/insight-function.test.ts) has 16 tests using a fake provider and a fake gateway; nothing calls DeepSeek. They cover the kill switch and missing configuration, auth and input validation, every gateway outcome, the request settings sent to DeepSeek, swapping in another provider, one retry for blank output, five kinds of unusable output, timeout, network, 429 and 5xx errors, failures in the gateway input and in `save`, unexpected exceptions, a prompt-injection fixture, removal of identities from what's sent, recommendation filtering and text cleaning.
+- 2026-11-19: `npm test` (41/41), `npm run lint`, `npm run typecheck` and `deno check` on both functions passed. Not run with `supabase functions serve` or deployed.
+- **Next: F08C.** Add `aiEnabled` to `profileSchema` and a toggle with the disclosure text in Settings. Add the insights adapter (`get_comparison_insight` and `functions.invoke('comparison-insight')`) and the results-page panel with every state.
