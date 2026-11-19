@@ -17,7 +17,7 @@ The app and backend implementation are present. A free Supabase project was crea
 - Project reference: `cilswqtuswmuktzhifsn`
 - Local application: **http://127.0.0.1:5180**
 
-All five migrations and catalog Edge Function version 2 are applied to that project. Seven verified MusicBrainz genres are seeded. The local ignored `.env` contains only the project URL and publishable key, not privileged credentials.
+All five migrations and catalog Edge Function version 2 are applied to that project. All 2,227 MusicBrainz genres are loaded (migration `20261119120000_musicbrainz_genres`, applied 2026-11-19). The local ignored `.env` contains only the project URL and publishable key, not privileged credentials.
 
 **Not release-complete:** Supabase Auth URLs and Resend SMTP are configured; Resend verifies `matchmymusic.app`, and a real recovery email was delivered and used successfully against the local app. The recovery-callback fix and default-on comparison-sharing update were pushed to `main` and deployed to the Cloudflare Worker; the deployed signup disclosure was verified in a browser. Production password reset, deep-link reloads, signed-in catalog search, and a live two-account journey remain unverified. Do not treat mocked browser tests or SQL fixture tests as proof of those release gates.
 

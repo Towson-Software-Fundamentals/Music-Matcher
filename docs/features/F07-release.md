@@ -61,7 +61,7 @@ Passed:
 
 Deployed: free project `cilswqtuswmuktzhifsn`, three migrations, catalog function v2, seven starter genres. Local dev server is responsive at http://127.0.0.1:5180.
 
-Blocked/unrun: signup confirmation using the newly configured Resend sender, production recovery after the callback fix deploys, signed-in deployed catalog search, live two-account browser journey, multi-connection races, full genre import, Docker/CLI clean setup, hosted frontend deep links, and final public release acceptance. Auth URLs and SMTP are now configured, and the public site responds over HTTPS. Provider 503s occurred during metadata retrieval. No provider uptime claim is made.
+Blocked/unrun: signup confirmation using the newly configured Resend sender, production recovery after the callback fix deploys, signed-in deployed catalog search, live two-account browser journey, multi-connection races, Docker/CLI clean setup, hosted frontend deep links, and final public release acceptance. Auth URLs and SMTP are now configured, and the public site responds over HTTPS. Provider 503s occurred during metadata retrieval. No provider uptime claim is made.
 
 Next: verify the approved main-branch deployment and production recovery, then exercise signed-in catalog search and the live two-account comparison/history journey. Complete the remaining clean-setup and deep-link checks before marking release acceptance. This is implemented code with a deployed backend, **not a completed release gate**.
 
