@@ -22,6 +22,7 @@ type ApiError = {
     | "SAME_PROFILE" | "INSUFFICIENT_PREFERENCES"
     | "STALE_WRITE" | "NOT_FOUND"
     | "RATE_LIMITED" | "CATALOG_UNAVAILABLE"
+    | "AI_CONSENT_REQUIRED" | "AI_UNAVAILABLE" // F08 insights
     | "NETWORK_ERROR" | "INTERNAL_ERROR";
   message: string;
   issues?: FieldIssue[];

@@ -35,10 +35,11 @@ Tests, clear interfaces, and persistent documentation carry context between sess
 | F05 | [Comparison creation](./F05-comparison.md) | F03; F02C and F06 for C | A: eligibility/scoring/snapshot transaction; B: compare screen; C: browse users and click-through comparison (planned launch addition) |
 | F06 | [Results and history](./F06-results.md) | F05 | A: authorized read APIs; B: results/history/dashboard |
 | F07 | [Release integration](./F07-release.md) | F04, F06, F01 | A: full-flow/accessibility acceptance; B: reproducible setup/deployment |
+| F08 | [AI comparison insights (DeepSeek)](./F08-ai.md) | F05, F06, F02 | A: consent/storage/quota; B: Edge Function + provider; C: results panel + settings; D: live T18 check (planned follow-up) |
 
 F04 and F05 can proceed independently after F03, but do not modify shared contracts or migrations concurrently without coordinating ownership. Default to serial execution; this plan does not require multiple agents.
 
-Optional AI is not part of these packets. Before implementing it, add its own consent, provider, failure, and data contracts rather than importing provider logic into comparison scoring.
+Optional AI is planned separately in [F08](./F08-ai.md), with its own consent, provider, failure, and data contracts. It never imports provider logic into comparison scoring.
 
 ## Module layout and import rules
 
